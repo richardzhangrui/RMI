@@ -1,0 +1,89 @@
+package Registry;
+
+import Exceptions.RemoteException;
+import Message.RMIMessage;
+import Message.RegMessage;
+import Server.CommunicationModule;
+import Server.Remote;
+
+public class Registry_Client implements Registry{
+	public Registry_Client(String host, int port) {
+		super();
+		this.host = host;
+		this.port = port;
+	}
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8626103234166801911L;
+	private String host;
+	private int port;
+	
+	@Override
+	public String[] list(){
+		// TODO Auto-generated method stub
+		RegMessage m = new RegMessage();
+		RegMessage.regInfo info = m.new regInfo("list", null, null);
+
+		m.set(info);
+		try {
+			CommunicationModule.writeObject(host, port, m);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			System.out.printf("Registry Client: Rmote Exception(%s)!\n",e.getCause().toString());
+		}
+		
+		RMIMessage obj = null;
+		try {
+			obj = CommunicationModule.readObject(host, port);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			System.out.printf("Registry Client: Rmote Exception(%s)!\n",e.getCause().toString());
+		}
+		
+		return (String[]) obj.get();
+	}
+
+	@Override
+	public Remote lookup(String name){
+		// TODO Auto-generated method stub
+		RegMessage m = new RegMessage();
+		RegMessage.regInfo info = m.new regInfo("lookup", name, null);
+
+		m.set(info);
+		try {
+			CommunicationModule.writeObject(host, port, m);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			System.out.printf("Registry Client: Rmote Exception(%s)!\n",e.getCause().toString());
+		}
+		
+		Remote obj = null;
+		try {
+			obj = (Remote)CommunicationModule.readObject(host, port).get();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			System.out.printf("Registry Client: Rmote Exception(%s)!\n",e.getCause().toString());
+		}
+		
+		return obj;
+	}
+
+	@Override
+	public void rebind(String name, Remote ror){
+		// TODO Auto-generated method stub
+		RegMessage m = new RegMessage();
+		RegMessage.regInfo info = m.new regInfo("rebind", name, ror);
+
+		m.set(info);
+		try {
+			CommunicationModule.writeObject(host, port, m);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			System.out.printf("Registry Client: Rmote Exception(%s)!\n",e.getCause().toString());
+		}
+	}
+	
+
+}
