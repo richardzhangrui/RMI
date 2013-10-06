@@ -71,13 +71,6 @@ public class RemoteServerRef {
 			tmp.put(key, m);
 		}
 		
-		for (Class<?> i: obj.getClass().getInterfaces()) {
-			for (Method m : i.getMethods()) {
-				Integer key = Util.Hash_Method(m);
-				tmp.put(key, m);
-			}
-		}
-		
 		synchronized(methods) {
 			synchronized(objects) {
 				synchronized(this.objid) {
