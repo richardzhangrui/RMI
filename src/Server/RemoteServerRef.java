@@ -71,7 +71,10 @@ public class RemoteServerRef {
 			tmp.put(key, m);
 		}
 		
+<<<<<<< HEAD
 		
+=======
+>>>>>>> f381bcd71e8cd03423a4d41b15d6ff99e5228ede
 		synchronized(methods) {
 			synchronized(objects) {
 				synchronized(this.objid) {
