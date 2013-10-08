@@ -25,6 +25,8 @@ public class RemoteServerRef {
 		= new Hashtable<Integer, Object>(100);
 	private static volatile Hashtable<Integer, Hashtable<Integer, Method>> methods 
 		= new Hashtable<Integer, Hashtable<Integer, Method>>(100);
+	private static volatile Hashtable<Object, Integer> keys
+		= new Hashtable<Object, Integer>(100);
 	
 	private static final int PORT = 15440;
 	private static final int REG_PORT = 15640;
@@ -71,13 +73,15 @@ public class RemoteServerRef {
 			tmp.put(key, m);
 		}
 		
-
 		synchronized(methods) {
 			synchronized(objects) {
-				synchronized(this.objid) {
-					methods.put(this.objid, tmp);
-					objects.put(this.objid, obj);
-					objid++;
+				synchronized(keys) {
+					synchronized(this.objid) {
+						methods.put(this.objid, tmp);
+						objects.put(this.objid, obj);
+						keys.put(obj, this.objid);
+						objid++;
+					}
 				}
 			}
 		}
@@ -86,8 +90,11 @@ public class RemoteServerRef {
 	void remove_Obj(int id) {
 		synchronized(methods) {
 			synchronized(objects) {
-				methods.remove(id);
-				objects.remove(id);
+				synchronized(keys){
+					methods.remove(id);
+					keys.remove(objects.get(id));
+					objects.remove(id);
+				}
 			}
 		}
 	}
@@ -126,10 +133,27 @@ public class RemoteServerRef {
 			
 			boolean flag = false;
 			
-			for (Class<?> i: obj.getInterfaces()) {
-				if (i.getName().equals("Server.Remote")) 
-					flag = true;
+			if(Remote.class.isAssignableFrom(obj)) {
+				flag = true;
 			}
+			
+//			for (Class<?> i: obj.getInterfaces()) {
+//				if (i.getName().equals("Server.Remote")){ 
+//					flag = true;
+//					break;
+//				}
+//				
+//				
+//				
+//					if(j.getName().equals("Server.Remote")){
+//						flag = true;
+//						break;
+//					}
+//				
+//				if(flag)
+//					break;
+//				
+//			}
 			
 			if (!flag) {
 				System.out.printf("Remote Server: %s is not a remote object!\n", args[0]);
@@ -219,11 +243,21 @@ public class RemoteServerRef {
 		try {
 			if(method.getReturnType().equals(void.class)){
 				method.invoke(obj, m.get().getParams());
+				message = new RVMessage(null);
 				System.out.printf("Remote Server: Do job %s.%s finished and with no return value %s:%d!\n",obj.getClass().toString(),method.getName(),host,port);
-				return;
 			}
 			else {
-				message = new RVMessage(method.invoke(obj, m.get().getParams()));
+				Object r = method.invoke(obj, m.get().getParams());
+				Class<?> c = obj.getClass();
+				if(r != null && r.getClass().equals(c)){
+					String hostip = InetAddress.getLocalHost().getHostAddress().toString();
+					
+					
+					add_Obj(r);
+					RemoteObjectRef ror = new RemoteObjectRef(hostip, this.getPort(),keys.get(r) , c.getName());
+					r = ror.localise();
+				}
+				message = new RVMessage(r);
 				System.out.printf("Remote Server: Do job %s.%s finished and send return value to %s:%d!\n",obj.getClass().toString(),method.getName(),host,port);
 			}
 		} catch (Exception e) {

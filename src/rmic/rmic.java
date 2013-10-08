@@ -20,6 +20,7 @@ public class rmic {
 		
 		int pos = classname.lastIndexOf(".");
 		
+		String classname1 = classname.substring(0, pos);
 		String classname2 = classname.substring(pos+1, classname.length());
 		
 		Class<?> obj;
@@ -31,7 +32,7 @@ public class rmic {
 		}
 		
 		String buffer = "";
-		buffer += "package Examples;\n" +
+		buffer += "package " +classname1+";\n" +
 				"import java.lang.reflect.Method;\n" +
 				"import Common.Util;\n" +
 				"import Exceptions.RemoteException;\n" +
@@ -122,13 +123,13 @@ public class rmic {
 					"try {\n" +
 					"CommunicationModule.writeObject(ref.getIP_adr(), ref.getPort(), message);\n";
 			
-			if(flag) {
-				buffer += "obj = CommunicationModule.readObject(ref.getIP_adr(), ref.getPort());\n" +
+
+			buffer += "obj = CommunicationModule.readObject(ref.getIP_adr(), ref.getPort());\n" +
 						"if(obj instanceof ExMessage){\n" +
-						"throw (RemoteException)((ExMessage)obj).get();\n";
-			}
+						"throw (RemoteException)((ExMessage)obj).get();\n}";
 			
-			buffer += "}} catch (RemoteException e) {\n" +
+			
+			buffer += "} catch (RemoteException e) {\n" +
 					"System.out.printf(\"Remote Exception %s caused by %s!\\n\",e.detail, e.getCause().toString());\n";
 			
 			if(flag)
@@ -148,7 +149,7 @@ public class rmic {
 		
 		buffer += "}\n";
 		
-		File newfile = new File(classname2+"_Stub.java");
+		File newfile = new File(classname1+"/"+classname2+"_Stub.java");
 		if(!newfile.exists()) {
 			try {
 				newfile.createNewFile();
@@ -173,9 +174,11 @@ public class rmic {
 		}
 		
 		try {
-			Runtime.getRuntime().exec("javac "+classname2+"_Stub.java");
-			Thread.sleep(1000);
-			Runtime.getRuntime().exec("rm "+classname2+"_Stub.java");
+			Process pro = Runtime.getRuntime().exec("javac "+classname1+"/"+classname2+"_Stub.java");
+			pro.waitFor();
+			//pro = Runtime.getRuntime().exec("rm "+classname1+"/"+classname2+"_Stub.java");
+			//pro.waitFor();	
+			Runtime.getRuntime().exec("mv "+classname2+"_Stub.class "+classname1);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
