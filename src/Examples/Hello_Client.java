@@ -1,5 +1,6 @@
 package Examples;
 
+import Exceptions.RemoteException;
 import Registry.LocateRegistry;
 import Server.RemoteObjectRef;
 
@@ -55,7 +56,22 @@ public class Hello_Client implements Hello_Interface{
 		System.out.println(hello.sayHello("Richard"));
 		System.out.println(hello.sayHello(1));
 		hello.testException();
+		try {
+			hello.testException2();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
+	}
+
+	@Override
+	public void testException2() throws RemoteException{
+		RemoteObjectRef ref = (RemoteObjectRef)(LocateRegistry.getRegistry(host, port).lookup("hello"));
+		
+		Hello_Stub hs = (Hello_Stub) ref.localise();
+		
+		hs.testException2();
 	}
 
 	

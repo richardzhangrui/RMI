@@ -241,13 +241,20 @@ public class RemoteServerRef {
 		RMIMessage message = null;
 		
 		try {
+			Object[] params = m.get().getParams();
+			for(Object p : params){
+				if(p.getClass().isAssignableFrom(obj.getClass())) {
+					p = objects.get(((RemoteStub)p).ref.getObj_Key());
+				}
+			}
+			
 			if(method.getReturnType().equals(void.class)){
-				method.invoke(obj, m.get().getParams());
+				method.invoke(obj, params);
 				message = new RVMessage(null);
 				System.out.printf("Remote Server: Do job %s.%s finished and with no return value %s:%d!\n",obj.getClass().toString(),method.getName(),host,port);
 			}
 			else {
-				Object r = method.invoke(obj, m.get().getParams());
+				Object r = method.invoke(obj, params);
 				Class<?> c = obj.getClass();
 				if(r != null && r.getClass().equals(c)){
 					String hostip = InetAddress.getLocalHost().getHostAddress().toString();

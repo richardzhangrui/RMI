@@ -116,5 +116,12 @@ public class Hello_Stub implements Remote,Hello_Interface{
 		
 		return (String)((RVMessage)obj).get();
 	}
+
+	@Override
+	public void testException2() throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
 	
 }

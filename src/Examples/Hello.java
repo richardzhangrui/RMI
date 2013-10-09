@@ -24,5 +24,12 @@ public class Hello implements Hello_Interface,Remote{
 		// TODO Auto-generated method stub
 		throw new RemoteException("Test",new Throwable("For test"));
 	}
+
+	@Override
+	public void testException2() throws RemoteException {
+		// TODO Auto-generated method stub
+		int i = 1/0;
+		i = i/2;
+	}
 	
 }

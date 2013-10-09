@@ -42,9 +42,10 @@ public class rmic {
 				"import Message.RVMessage;\n" +
 				"import Server.CommunicationModule;\n" +
 				"import Server.Remote;\n" +
-				"import Server.RemoteObjectRef;\n";
+				"import Server.RemoteObjectRef;\n" +
+				"import Server.RemoteStub;\n";
 		
-		buffer += "public class "+ classname2 +"_Stub implements ";
+		buffer += "public class "+ classname2 +"_Stub extends RemoteStub implements ";
 		for(Class<?> i : obj.getInterfaces()) {
 			buffer += i.getName() + ",";
 		}
@@ -53,7 +54,7 @@ public class rmic {
 			buffer = buffer.substring(0, buffer.length()-1);
 		
 		buffer += "{\n" +
-				"RemoteObjectRef ref;\n" +
+				//"RemoteObjectRef ref;\n" +
 				"public "+classname2+"_Stub(RemoteObjectRef r) {\n" +
 				"	this.ref = r;\n" +
 				"}\n";
