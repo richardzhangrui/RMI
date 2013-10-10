@@ -1,7 +1,7 @@
 package Message;
 
 /**
- * RVMessage is a class communicating remote method return valur. It implements RMIMessage interface.
+ * RVMessage is a class communicating remote method return value. It implements RMIMessage interface.
  * 
  * @author      Rui Zhang
  * @author      Jing Gao
