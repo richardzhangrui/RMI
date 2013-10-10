@@ -10,24 +10,59 @@ import Exceptions.RemoteException;
 import Message.ExMessage;
 import Message.RMIMessage;
 
+/**
+ * CommunicationModule is a class responsible for communication with remote clients/servers.
+ * On each client/server, it keeps a HashMap of hostname/port info and corresponding socket.
+ * Givin remote host name and port, it can read from or write to the corresponding socket.
+ * 
+ * @author      Rui Zhang
+ * @author      Jing Gao
+ * @version     1.0, 10/08/2013
+ * @since       1.0
+ */
 public final class CommunicationModule {
 	private static volatile HashMap<String, Socket> socks = new HashMap<String, Socket>();
 	
-	/* disable public constructor */
+	/** 
+     * constructor of CommunicationModule class
+     * 
+     * @since           1.0
+     */
 	private CommunicationModule() {}
 	
+	/** 
+     * add host/port info and socket to hashmap
+     * 
+     * @param key       the key string containing hostname and port
+     * @param sock      the socked to be recorded in hashmap
+     * @since           1.0
+     */
 	public static void addSock_ts(String key, Socket sock) {
 		synchronized(socks) {
 			socks.put(key, sock);
 		}
 	}
 	
+	/** 
+     * remove hostname/port info and corresponding socket from hashmap
+     * 
+     * @param key       the key string containing host and port
+     * @since           1.0
+     */
 	public static void removeSock_ts(String key) {
 		synchronized(socks) {
 			socks.remove(key);
 		}
 	}
 	
+	/** 
+     * write RMI message to a socket specified by hostname/port
+     * 
+     * @param host      the hostname
+     * @param port      the port number
+     * @param m         the RMI message to be sent to the destination remote server/client
+     * @since           1.0
+     */
 	public static void writeObject(String host, int port, RMIMessage m) throws RemoteException {
 		String key = host + port;
 		Socket sock;
@@ -49,6 +84,15 @@ public final class CommunicationModule {
 		}
 		
 	}
+	
+	/** 
+     * read RMI message from a socket specified by hostname/port
+     * 
+     * @param host      the hostname
+     * @param port      the port number
+     * @return          the RMI message read from the remote server/client
+     * @since           1.0
+     */
 	public static RMIMessage readObject(String host, int port) throws RemoteException {
 		String key = host + port;
 		Socket sock = null;
@@ -68,7 +112,6 @@ public final class CommunicationModule {
 			m = (RMIMessage)in.readObject();
 		} catch (IOException e) {
 			removeSock_ts(key);
-			//System.out.printf("Communication Module:Job Finished with address:%s, port: %d\n", host, port);
 			throw new RemoteException("ReadObject Fail",new Throwable("Caused By I/O Exception"));
 		} catch (ClassNotFoundException e) {
 			System.out.printf("ClassNotFoundException: ReadObject fail with address:%s, port: %d\n", host, port);

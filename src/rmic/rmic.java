@@ -8,21 +8,38 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
 
 
+/**
+ * rmic is the RMI stub compiler class. It creates a _Stub.java code file and fitting in all
+ * necessary arguments, method names and parameters. Then the compiler compiles the source 
+ * code to generate _Stub.class file, which will act as the stub.
+ * 
+ * @author      Rui Zhang
+ * @author      Jing Gao
+ * @version     1.0, 10/08/2013
+ * @since       1.0
+ */
 public class rmic {
+
+    /**
+	 * the main function of RMI stub compiler class, responsible of generating the source code 
+	 * of the stub and compiling it to generate the stub class.
+	 *
+	 * @param args      the name of class for which it will generate the stub
+	 * @since           1.0
+	 */	
 	public static void main(String[] args) {
 		
+		/*
+		 * parse the arguments and locate the requested class
+		 */
 		if(args.length < 1){
 			System.out.println("Usage:java rmic [classname]");
 			System.exit(0);
 		}
-		
 		String classname = args[0];
-		
 		int pos = classname.lastIndexOf(".");
-		
 		String classname1 = classname.substring(0, pos);
 		String classname2 = classname.substring(pos+1, classname.length());
-		
 		Class<?> obj;
 		try {
 			obj = Class.forName(classname);
@@ -31,6 +48,9 @@ public class rmic {
 			return;
 		}
 		
+		/*
+		 * generate source code of the stub
+		 */
 		String buffer = "";
 		buffer += "package " +classname1+";\n" +
 				"import java.lang.reflect.Method;\n" +
@@ -59,6 +79,10 @@ public class rmic {
 				"	this.ref = r;\n" +
 				"}\n";
 		
+		
+		/*
+		 * create entry for each of the methods
+		 */
 		for(Method m : obj.getMethods()) {
 			if(m.getDeclaringClass() == Object.class) 
 				continue;
@@ -150,41 +174,36 @@ public class rmic {
 		
 		buffer += "}\n";
 		
+		/*
+		 * output the buffer to generate the source code file
+		 */
 		File newfile = new File(classname1+"/"+classname2+"_Stub.java");
 		if(!newfile.exists()) {
 			try {
 				newfile.createNewFile();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} 
-		
 		try {
-			
 			FileOutputStream out = new FileOutputStream(newfile);
 			out.write(buffer.getBytes(), 0, buffer.getBytes().length);
-//			ObjectOutputStream o = new ObjectOutputStream(out);
-//			o.writeObject(buffer);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		/*
+		 * compile the source code file to generate the stub
+		 */
 		try {
 			Process pro = Runtime.getRuntime().exec("javac "+classname1+"/"+classname2+"_Stub.java");
 			pro.waitFor();
-			//pro = Runtime.getRuntime().exec("rm "+classname1+"/"+classname2+"_Stub.java");
-			//pro.waitFor();	
 			Runtime.getRuntime().exec("mv "+classname2+"_Stub.class "+classname1);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -1,60 +1,50 @@
 package Exceptions;
 
+
+/**
+ * RemoteException class is original from java rmi package. It is responsible of showing
+ * the cause and detailed messages of an exception happening remotely.
+ * 
+ * @author      Oracle
+ */
 public class RemoteException extends java.io.IOException {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = -6737045103510223320L;
-
-    /**
-     * The cause of the remote exception.
-     *
-     * <p>This field predates the general-purpose exception chaining facility.
-     * The {@link Throwable#getCause()} method is now the preferred means of
-     * obtaining this information.
-     *
-     * @serial
-     */
     public Throwable detail;
 
     /**
-     * Constructs a <code>RemoteException</code>.
+     * constructor of RemoteException class
      */
     public RemoteException() {
-        initCause(null);  // Disallow subsequent initCause
+        initCause(null);
     }
 
     /**
-     * Constructs a <code>RemoteException</code> with the specified
-     * detail message.
+     * constructor of RemoteException class
      *
-     * @param s the detail message
+     * @param s         the string of detailed information
      */
     public RemoteException(String s) {
         super(s);
-        initCause(null);  // Disallow subsequent initCause
+        initCause(null);
     }
 
     /**
-     * Constructs a <code>RemoteException</code> with the specified detail
-     * message and cause.  This constructor sets the {@link #detail}
-     * field to the specified <code>Throwable</code>.
+     * constructor of RemoteException class
      *
-     * @param s the detail message
-     * @param cause the cause
+     * @param s         the string of detailed information
+     * @param cause     the throwable cause of the remote exception
      */
     public RemoteException(String s, Throwable cause) {
         super(s);
-        initCause(null);  // Disallow subsequent initCause
+        initCause(null);
         detail = cause;
     }
 
     /**
-     * Returns the detail message, including the message from the cause, if
-     * any, of this exception.
+     * get the detailed info message of the exception, along with the throwable cause
      *
-     * @return the detail message
+     * @return          the detailed info message
      */
     public String getMessage() {
         if (detail == null) {
@@ -66,11 +56,9 @@ public class RemoteException extends java.io.IOException {
     }
 
     /**
-     * Returns the cause of this exception.  This method returns the value
-     * of the {@link #detail} field.
+     * get the throwable cause of the remote exception
      *
-     * @return  the cause, which may be <tt>null</tt>.
-     * @since   1.4
+     * @return          the cause
      */
     public Throwable getCause() {
         return detail;
