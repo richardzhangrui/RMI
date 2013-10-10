@@ -50,7 +50,7 @@ public class RemoteObjectRef implements Serializable, Remote{
     }
     
     /** 
-     * localise the remote object reference and create a remote stub with the name of remote
+     * localise the remote object reference and locate a stub with the name of remote
      * interface plus suffix "_Stub"
      * 
      * @return          the remote stub object

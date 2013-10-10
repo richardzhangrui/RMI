@@ -185,7 +185,7 @@ public class RemoteServerRef {
 		
 		    /*
 		     * User wants to register a remote service to RMI registry, the remote server get the 
-		     * specified object, and validate it qualifies RMI.
+		     * specified object, and validate that it qualifies RMI.
 		     */
 			Class<?> obj;
 			try {
@@ -331,7 +331,7 @@ public class RemoteServerRef {
 				
 				/*
 				 * the situations where the stub need be returned, localise the corresponding remote
-				 * object reference and get the generated stub
+				 * object reference and get the stub and return it
 				 */
 				if(r != null && r.getClass().equals(c)){
 					String hostip = InetAddress.getLocalHost().getHostAddress().toString();
