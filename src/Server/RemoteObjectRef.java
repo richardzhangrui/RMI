@@ -13,7 +13,7 @@ import Message.*;
 /**
  * RemoteObjectRef class is reference of remote object. It contains necessary information about 
  * remote object, like ip address, port number, object key and remote interface name. It can 
- * localise on a remote client from the original object, and create a stub there. Providing
+ * localise on a remote client from the original object, and locate a stub there. Providing
  * remote object reference, method on it, and parameters, the invoke method will pass the information
  * via method message, invoke the remote method on a remote server, and return the return value
  * from the remote method.
