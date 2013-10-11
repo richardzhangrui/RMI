@@ -1,11 +1,9 @@
 package rmic;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
+
+import Common.Util;
 
 
 /**
@@ -65,7 +63,7 @@ public class rmic {
 				"import Server.RemoteObjectRef;\n" +
 				"import Server.RemoteStub;\n";
 		
-		buffer += "public class "+ classname2 +"_Stub extends RemoteStub implements ";
+		buffer += "public class "+ classname2 +"_Stub implements RemoteStub,";
 		for(Class<?> i : obj.getInterfaces()) {
 			buffer += i.getName() + ",";
 		}
@@ -74,10 +72,12 @@ public class rmic {
 			buffer = buffer.substring(0, buffer.length()-1);
 		
 		buffer += "{\n" +
-				//"RemoteObjectRef ref;\n" +
+				"RemoteObjectRef ref;\n" +
 				"public "+classname2+"_Stub(RemoteObjectRef r) {\n" +
 				"	this.ref = r;\n" +
 				"}\n";
+		
+		buffer += "public RemoteObjectRef getRef(){ return ref;}\n";
 		
 		
 		/*
@@ -177,28 +177,16 @@ public class rmic {
 		/*
 		 * output the buffer to generate the source code file
 		 */
-		File newfile = new File(classname1+"/"+classname2+"_Stub.java");
-		if(!newfile.exists()) {
-			try {
-				newfile.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} 
-		try {
-			FileOutputStream out = new FileOutputStream(newfile);
-			out.write(buffer.getBytes(), 0, buffer.getBytes().length);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Util.writeToFile(buffer, classname1+"/"+classname2+"_Stub.java");
 		
 		/*
 		 * compile the source code file to generate the stub
+		 * remove the java source code
 		 */
 		try {
 			Process pro = Runtime.getRuntime().exec("javac "+classname1+"/"+classname2+"_Stub.java");
+			pro.waitFor();
+			pro = Runtime.getRuntime().exec("rm "+classname1+"/"+classname2+"_Stub.java");
 			pro.waitFor();
 			Runtime.getRuntime().exec("mv "+classname2+"_Stub.class "+classname1);
 		} catch (IOException e) {

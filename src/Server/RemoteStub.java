@@ -8,6 +8,6 @@ package Server;
  * @version     1.0, 10/08/2013
  * @since       1.0
  */
-public class RemoteStub extends Object{
-	public RemoteObjectRef ref;
+public interface RemoteStub{
+	public RemoteObjectRef getRef();
 }

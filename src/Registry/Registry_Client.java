@@ -44,7 +44,7 @@ public class Registry_Client implements Registry{
 	@Override
 	public String[] list(){
 		RegMessage m = new RegMessage();
-		RegMessage.regInfo info = m.new regInfo("list", null, null);
+		RegMessage.regInfo info = m.new regInfo(RegMessage.CMD.LIST, null, null);
 
 		m.set(info);
 		try {
@@ -74,7 +74,7 @@ public class Registry_Client implements Registry{
 	@Override
 	public Remote lookup(String name){
 		RegMessage m = new RegMessage();
-		RegMessage.regInfo info = m.new regInfo("lookup", name, null);
+		RegMessage.regInfo info = m.new regInfo(RegMessage.CMD.LOOKUP, name, null);
 
 		m.set(info);
 		try {
@@ -104,7 +104,7 @@ public class Registry_Client implements Registry{
 	public void rebind(String name, Remote ror){
 
 		RegMessage m = new RegMessage();
-		RegMessage.regInfo info = m.new regInfo("rebind", name, ror);
+		RegMessage.regInfo info = m.new regInfo(RegMessage.CMD.REBIND, name, ror);
 
 		m.set(info);
 		try {

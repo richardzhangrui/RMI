@@ -17,7 +17,9 @@ import Message.MethodInfo;
 import Message.MethodMessage;
 import Message.RMIMessage;
 import Message.RVMessage;
-import Message.RegMessage;
+import Message.RorMessage;
+import Registry.LocateRegistry;
+import Registry.Registry_Client;
 
 /**
  * RemoteServerRef is the remote server where remote objects and methods reside on. It keeps a 
@@ -178,14 +180,12 @@ public class RemoteServerRef {
 				isRun = false;
 				System.exit(0);
 		}
-		else if(args[0].equals("print")){
-			
-		}
 		else {
 		
 		    /*
 		     * User wants to register a remote service to RMI registry, the remote server get the 
-		     * specified object, and validate that it qualifies RMI.
+		     * specified object, and validate that it qualifies RMI for checking whether it implements the 
+		     * Remote interface
 		     */
 			Class<?> obj;
 			try {
@@ -195,6 +195,9 @@ public class RemoteServerRef {
 				return;
 			}
 			
+			/*
+			 * Checking whether a object implements a remote interface
+			 */
 			boolean flag = false;
 			if(Remote.class.isAssignableFrom(obj)) {
 				flag = true;
@@ -232,14 +235,10 @@ public class RemoteServerRef {
 			/*
 			 * The server creates a RegMessage and send a rebind request to RMI registry server
 			 */
-			RegMessage message = new RegMessage();
-			message = new RegMessage(message.new regInfo("rebind", args[1], ror));
-			try {
-				CommunicationModule.writeObject(this.reg_host, this.reg_port,message);
-			} catch (RemoteException e) {
-				System.out.printf("Remote Server: Remote Exception! Cannot connect to: %s: %d\n", this.reg_host, this.reg_port);
-				return;
-			}
+			
+			Registry_Client reg = null;
+			reg = LocateRegistry.getRegistry(this.reg_host, this.reg_port);
+			reg.rebind(args[1], ror);
 			
 			/*
 			 * Finally, the server adds the object and associated remote methods to its hashtables.
@@ -275,8 +274,33 @@ public class RemoteServerRef {
 	 * @param port  the port number of the client
 	 * @since       1.0
 	 */
-	void do_job(MethodMessage m, String host, int port) {
-		MethodInfo info = m.get();
+	void do_job(RMIMessage m, String host, int port) {
+		
+		if(m instanceof RorMessage) {
+			RemoteObjectRef ref = (RemoteObjectRef) ((RorMessage)m).get();
+			
+			String objName = ref.getRemote_Interface_Name();
+			
+			System.out.println(objName);
+			
+			int pos = objName.lastIndexOf(".");
+			String packagename = objName.substring(0, pos);
+			String filename = objName.substring(pos+1);
+			
+			byte[] content = Util.readFromFile(packagename +"/"+ filename +"_Stub.class");
+			System.out.println("Content:"+content);
+			RMIMessage message = new RVMessage(content);
+			try {
+				CommunicationModule.writeObject(host, port, message);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+			System.out.println("Remote Server: Return the stub class!");
+			return;
+		}
+		
+		
+		MethodInfo info = ((MethodMessage)m).get();
 
         /*
          * respond an exception message to the client if the requested remote object does not exist
@@ -287,6 +311,7 @@ public class RemoteServerRef {
 			try {
 				CommunicationModule.writeObject(host, port, message);
 			} catch (RemoteException e) {
+				e.printStackTrace();
 			}
 			System.out.println("Remote Server: Do job finished but find no such object!");
 			return;
@@ -302,6 +327,7 @@ public class RemoteServerRef {
 			try {
 				CommunicationModule.writeObject(host, port, message);
 			} catch (RemoteException e) {
+				e.printStackTrace();
 			}
 			System.out.println("Remote Server: Do job finished but find no such method!");
 			return;
@@ -313,38 +339,57 @@ public class RemoteServerRef {
 		 */
 		RMIMessage message = null;
 		try {
-			Object[] params = m.get().getParams();
-			for(Object p : params){
-				if(p.getClass().isAssignableFrom(obj.getClass())) {
-					p = objects.get(((RemoteStub)p).ref.getObj_Key());
+			Object[] params = ((MethodMessage)m).get().getParams();
+			
+			/*
+			 * Check whether one of the parameters is a stub and transform it to the local copy through the objkey
+			 */
+			if(params != null) {
+				for(int i = 0;i < params.length;i++){
+					if(RemoteStub.class.isAssignableFrom(params[i].getClass())) {
+						params[i] = objects.get(((RemoteStub)params[i]).getRef().getObj_Key());
+					}
 				}
 			}
 			
+			/*
+			 * invoke function without return value
+			 */
 			if(method.getReturnType().equals(void.class)){
 				method.invoke(obj, params);
 				message = new RVMessage(null);
 				System.out.printf("Remote Server: Do job %s.%s finished and with no return value %s:%d!\n",obj.getClass().toString(),method.getName(),host,port);
 			}
+			/*
+			 * invoke function with return value
+			 */
 			else {
 				Object r = method.invoke(obj, params);
 				Class<?> c = obj.getClass();
 				
 				/*
-				 * the situations where the stub need be returned, localise the corresponding remote
-				 * object reference and get the stub and return it
+				 * the situations where the remote object need be returned, localise the corresponding remote
+				 * object reference to get the stub and return it
 				 */
 				if(r != null && r.getClass().equals(c)){
+					
 					String hostip = InetAddress.getLocalHost().getHostAddress().toString();
 					
 					add_Obj(r);
 					RemoteObjectRef ror = new RemoteObjectRef(hostip, this.getPort(),keys.get(r) , c.getName());
 					r = ror.localise();
+					
+					
 				}
 				
 				message = new RVMessage(r);
 				System.out.printf("Remote Server: Do job %s.%s finished and send return value to %s:%d!\n",obj.getClass().toString(),method.getName(),host,port);
 			}
 		} catch (Exception e) {
+			/*
+			 * if there is an remote exception happened, encapsulate it in ExMessage
+			 */
+			e.printStackTrace();
 			System.out.println("Remote Server: Do job finished but invoke failed with Exception!");
 			message = new ExMessage(new RemoteException("Remote Exception",new Throwable("Caused by Invoke Method")));
 		}  finally {

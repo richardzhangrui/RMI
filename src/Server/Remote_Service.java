@@ -3,7 +3,7 @@ package Server;
 import java.net.Socket;
 
 import Exceptions.RemoteException;
-import Message.MethodMessage;
+import Message.RMIMessage;
 
 /**
  * Remote_Service is a class responsible of serving a connection to the remote server. It adds 
@@ -53,9 +53,9 @@ public class Remote_Service implements Runnable{
 		CommunicationModule.addSock_ts(key, sock);
 		
 		while(isRun) {
-			MethodMessage m;
+			RMIMessage m;
 			try {
-				m = (MethodMessage)CommunicationModule.readObject(host, port);
+				m = CommunicationModule.readObject(host, port);
 				ref.do_job(m, host, port);
 			} catch (RemoteException e) {
 				System.out.printf("Remote Server: Job Finished at %s:%d\n",host,port);

@@ -2,12 +2,10 @@ package Server;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import Common.Util;
-import Exceptions.RemoteException;
-import Message.*;
+import Message.RVMessage;
+import Message.RorMessage;
 
 
 /**
@@ -68,54 +66,37 @@ public class RemoteObjectRef implements Serializable, Remote{
 	    	Constructor<?> o = c.getConstructor(this.getClass());
 	    	remote_stub = (Remote)o.newInstance(this);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+			try {
+				CommunicationModule.writeObject(this.IP_adr, this.Port, new RorMessage(this));
+				byte[] objclass = (byte[])((RVMessage)CommunicationModule.readObject(this.IP_adr, this.Port)).get();
+				
+				if(objclass == null) {
+					System.out.println("This stub file does not exist.");
+					return null;
+				}
+				
+				int pos = stub_name.lastIndexOf(".");
+				String packagename = stub_name.substring(0, pos);
+				String filename = stub_name.substring(pos+1);
+				
+				Util.writeBinaryToFile(objclass, packagename+"/"+filename+".class");
+				c = Class.forName(stub_name);
+		    	Constructor<?> o = c.getConstructor(this.getClass());
+		    	remote_stub = (Remote)o.newInstance(this);
+				
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				System.out.println("Exception happend when creating stub");
+				return null;
+			} 
+		} catch (Exception e) {
+			System.out.println("Exception happend when creating stub");
+			return null;
 		}
 		
 		return remote_stub;
     }
     
-    /** 
-     * invoke a remote method on a referenced remote object, with the parameters needed.
-     * this method will capsule all information in a method message and communicate with the
-     * destination server, and then read the return value from the remote server.
-     * 
-     * @param obj           the remote object reference containing info about remote object
-     * @param method        the method to be invoked
-     * @param params        the parameter of the remote method
-     * @return              the remote return value if there is one, null otherwise
-     * @since           1.0
-     */
-    public Object invoke(Remote obj, Method method, Object[] params) throws RemoteException {
-    	RemoteObjectRef ror = (RemoteObjectRef)obj;
-    	MethodInfo minfo = new MethodInfo(ror.Obj_Key, Util.Hash_Method(method), params);
-    	MethodMessage m = new MethodMessage(minfo);
-    	
-    	CommunicationModule.writeObject(ror.IP_adr, ror.Port, m);
-    	
-    	if(method.getReturnType() == void.class) {
-    		return null;
-    	}
-    	
-    	RVMessage returnValue = (RVMessage)CommunicationModule.readObject(ror.IP_adr, ror.Port);
-    	
-    	if(returnValue == null){
-    		throw new RemoteException("Remote Exception",new Throwable("Caused by I/O error"));
-    	}
-    	
-		return returnValue.get();
-    }
     
     /** 
      * get the remote interface name from remote object reference

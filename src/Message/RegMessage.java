@@ -25,28 +25,35 @@ public class RegMessage implements RMIMessage{
      */
 	public class regInfo implements Serializable{
 		private static final long serialVersionUID = 8230230872595558427L;
-		public String cmd;
+		
+		public CMD cmd;
 		public String service_name;
 		public Remote ror;
 		
 		/** 
          * constructor of regInfo class
          * 
-         * @param cmd           command string, needed in all request
+         * @param cmd           command enum, needed in all request
          * @param service_name  service name string, needed when initializing a lookup or rebind request
          * @param ror           remote object reference, needed when initializing a rebind request
          * @since               1.0
          */
-		public regInfo(String cmd, String service_name, Remote ror) {
+		public regInfo(CMD cmd, String service_name, Remote ror) {
 			super();
 			this.cmd = cmd;
 			this.service_name = service_name;
 			this.ror = ror;
 		}
 	}
-
+	
+	
+	
 	private static final long serialVersionUID = 7715655264625017766L;
 	private regInfo reg;
+	
+	public enum CMD {
+	    LOOKUP, REBIND, LIST 
+	}
 	
 	/** 
      * constructor of RegMessage class

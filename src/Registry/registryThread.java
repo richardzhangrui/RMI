@@ -78,7 +78,7 @@ public class registryThread implements Runnable{
 			 * parse command and pass corresponding registry method to RMI registry server to deal with
 			 */
 			switch(m.get().cmd){
-				case "lookup":
+				case LOOKUP:
 					Remote obj = server.lookup(m.get().service_name);
 					if(obj instanceof ExMessage)
 						try {
@@ -97,10 +97,10 @@ public class registryThread implements Runnable{
 						}
 					}
 					break;
-				case "rebind":
+				case REBIND:
 					server.rebind(m.get().service_name, m.get().ror);
 					break;
-				case "list":
+				case LIST:
 					String[] names = server.list();
 					RVMessage message = new RVMessage(names);
 					try {
